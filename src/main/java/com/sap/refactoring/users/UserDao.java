@@ -1,74 +1,43 @@
 package com.sap.refactoring.users;
 
+import org.springframework.stereotype.Repository;
+
 import java.util.ArrayList;
+import java.util.List;
 
-import jakarta.transaction.Transactional;
-
+@Repository
 public class UserDao
 {
-	public ArrayList<User> users;
+	private final List<User> users = new ArrayList<>();
 
-	public static UserDao userDao;
-
-	public static UserDao getUserDao() {
-		if (userDao == null) {
-			userDao = new UserDao();
-		}
-		return userDao;
-	}
-
-	@Transactional
 	public void saveUser(User user) {
-		if (users == null) {
-			users = new ArrayList<User>();
-		}
 		users.add(user);
 	}
 
-	public ArrayList<User> getUsers() {
-		try {
-			return users;
-		} catch (Throwable e) {
-			System.out.println("error");
-			return null;
-		}
+	public List<User> getUsers() {
+		return new ArrayList<>(users);
 	}
 
-	public void deleteUser(User userToDelete) {
-		try {
-			for (User user : users) {
-				if (user.getName() == userToDelete.getName()) {
-					users.remove(user);
-				}
+	public User findByEmail(String email) {
+		for (User user : users) {
+			if (user.getEmail().equals(email)) {
+				return user;
 			}
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-
-	public void updateUser(User userToUpdate) {
-		try {
-			for (User user : users) {
-				if (user.getName() == userToUpdate.getName()) {
-					user.setEmail(userToUpdate.getEmail());
-					user.setRoles(userToUpdate.getRoles());
-					this.saveUser(user);
-				}
-			}
-		} catch (RuntimeException e) {
-			e.printStackTrace();
-		}
-	}
-
-	public User findUser(String name) {
-		try {
-			for (User user : users) {
-				if (user.getName() == name) {
-					return user;
-				}
-			}
-		} catch (NullPointerException e) {
-			e.printStackTrace();
 		}
 		return null;
-	}}
+	}
+
+	public void deleteByEmail(String email) {
+		users.removeIf(user -> user.getEmail().equals(email));
+	}
+
+	public void updateUser(User updatedUser) {
+		for (User user : users) {
+			if (user.getEmail().equals(updatedUser.getEmail())) {
+				user.setName(updatedUser.getName());
+				user.setRoles(updatedUser.getRoles());
+				return;
+			}
+		}
+	}
+}
