@@ -1,5 +1,8 @@
 package com.sap.refactoring.users;
 
+import com.sap.refactoring.exception.DuplicateEmailException;
+import com.sap.refactoring.exception.InvalidUserException;
+import com.sap.refactoring.exception.UserNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -9,79 +12,78 @@ import java.util.List;
 @RequiredArgsConstructor
 public class UserService {
 
-    private final UserDao userDao;
-
+    private final UserRepository userRepository;
 
     @Transactional
     public User createUser(User user) {
         validateUser(user);
 
-        if (userDao.findByEmail(user.getEmail()) != null) {
-            throw new IllegalArgumentException("Email already exists");
+        if (userRepository.existsById(user.getEmail())) {
+            throw new DuplicateEmailException("Email already exists");
         }
 
-        userDao.saveUser(user);
-        return user;
+        return userRepository.save(user);
     }
-
 
     @Transactional
     public User updateUser(User user) {
         validateUser(user);
 
-        User existing = userDao.findByEmail(user.getEmail());
-
-        if (existing == null) {
-            throw new IllegalArgumentException("User not found");
-        }
+        User existing = userRepository.findById(user.getEmail())
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
 
         existing.setName(user.getName());
         existing.setRoles(user.getRoles());
 
-        userDao.updateUser(existing);
-        return existing;
+        return userRepository.save(existing);
     }
 
     @Transactional
     public void deleteUser(String email) {
-        User existing = userDao.findByEmail(email);
-
-        if (existing == null) {
-            throw new IllegalArgumentException("User not found");
+        if (!userRepository.existsById(email)) {
+            throw new UserNotFoundException("User not found");
         }
 
-        userDao.deleteByEmail(email);
+        userRepository.deleteById(email);
     }
-
 
     public List<User> getUsers() {
-        return userDao.getUsers() != null ? userDao.getUsers() : List.of();
+        return userRepository.findAll();
     }
-
 
     public User findUser(String email) {
-        User user = userDao.findByEmail(email);
-
-        if (user == null) {
-            throw new IllegalArgumentException("User not found");
-        }
-
-        return user;
+        return userRepository.findById(email)
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
     }
-
 
     private void validateUser(User user) {
 
         if (user.getName() == null || user.getName().isEmpty()) {
-            throw new IllegalArgumentException("Name is required");
+            throw new InvalidUserException("Name is required");
         }
 
         if (user.getEmail() == null || user.getEmail().isEmpty() || !user.getEmail().contains("@")) {
-            throw new IllegalArgumentException("Invalid email");
+            throw new InvalidUserException("Invalid email");
         }
 
         if (user.getRoles() == null || user.getRoles().isEmpty()) {
-            throw new IllegalArgumentException("User must have at least one role");
+            throw new InvalidUserException("User must have at least one role");
         }
+    }
+
+    public User mapToEntity(UserDto dto) {
+        User user = new User();
+        user.setName(dto.getName());
+        user.setEmail(dto.getEmail());
+        user.setRoles(dto.getRoles());
+        return user;
+    }
+
+    public UserDto mapToDto(User user) {
+        UserDto dto = new UserDto();
+        dto.setName(user.getName());
+        dto.setEmail(user.getEmail());
+        dto.setRoles(user.getRoles());
+        return dto;
     }
 }

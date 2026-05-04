@@ -1,68 +1,275 @@
-Java Refactoring Test Project
-=============================
+# Full Refactoring Summary (End-to-End)
 
-**Please, before starting this test, read through all of the instructions carefully!**
+This project demonstrates the complete transformation of an application from an initial, tightly coupled state into a clean, maintainable, and production-ready system.
 
-Introduction
-------------
+---
 
-This is a test project used by SAP Team Atlas software hiring process to test your knowledge of Java/Spring best practices and refactoring.
+## 1. Model Simplification (User)
 
-The idea of this exercise is to evaluate your ability to identify poor coding practices and improve the code through the use of best practices.
+**Before**
 
-The main project is a very basic user management application. We are not looking to add any supplementary features, instead we are verifying the following items:
+* Manual getters and setters
+* Verbose and less readable POJO
 
-* Your knowledge of REST
-* Your knowledge of Gradle
-* Your knowledge of Spring / SpringBoot
-* Your ability to identify and refactor poor Java code
-* Your ability to identify and fix bugs
-* Your ability to apply proven design principles
-* Your ability to write useful and effective tests
+**After**
 
-Feel free to modify whatever you want! :)
+* Replaced boilerplate with Lombok `@Data`
+* Improved readability and maintainability
 
-Prerequisites
--------------
+**Improvement**
+Reduced unnecessary code and simplified the model layer.
 
-* You must have a Github account. If you don't have one, please create one via the [Github website](http://github.com/).
-* This repo uses Git for source control management (SCM). If you don't already have the git utility already installed on your machine you will need to install it. To do so, check out the [git downloads page](http://git-scm.com/downloads).
-* To build this project you must use Gradle. If you do not have gradle already installed on your machine you will need to install it. To do so, check out the [Gradle downloads](https://gradle.org/install/).
+---
 
-Instructions
-------------
+## 2. Data Layer Refactor (UserDao → Repository)
 
-1. Clone this repo from Github to your local machine.
-2. At the project root directory, run the following command from the command-line:
-   `$ ./gradlew build`
-3. The tests run will fail, as some of the tests are not implemented correctly. Part of the task is to fix these tests.
-4. Now perform the refactoring you deem necessary by using your knowledge of Java/Spring best practices. Remember that this includes both code and tests. Also, please feel free to innovate!
-5. Please make sure that your code compiles and that all tests are green when you are done.
-6. When you are finished please commit your code on your local machine and then [create a patch using git](http://git-scm.com/docs/git-format-patch).
-7. The final step is to send an email to your contact at SAP to inform this person that you have completed the test. Please make sure to attach a copy of the patch containing your changes. If you have simply created your own repository as a clone, then please forward the URL.
+**Before**
 
-Business Requirements
----------------------
+* Custom DAO implementation
+* Manual Singleton pattern
+* Incorrect string comparison using `==`
+* Data inconsistency due to improper update logic
+* Returning null and silent exception handling
+* Search based on non-unique field (name)
 
-* The user's email is a unique identifier and should be handled accordingly.
-* A user should have at least one role.
+**After**
 
-Tips
-----
+* Removed DAO completely
+* Introduced `UserRepository` using Spring Data JPA
+* Used `email` as unique identifier (primary key)
+* Leveraged built-in CRUD operations
+* Eliminated manual state management and bugs
 
-* Unit tests != integration tests
-* Spring dependency is provided, feel free to use it
-* Don't be afraid to import additional dependencies if you think you need them
-* Remember that you will have to handle concurrent requests
-* Your final architecture should be portable, extensible and easily maintainable
+**Improvement**
+Replaced error-prone custom logic with a robust and scalable persistence solution.
 
-Bonus
------
+---
 
-If this exercise is too easy, additional points will be given for the following: - 
+## 3. Service Layer Introduction
 
-* Utilising Docker / Docker Compose to run a PostgreSQL Database as the persistence layer
-* Implement the DB access using Hibernate, or other such ORM
-* Implement DB initialisation using either Flyway or Liquibase
+**Before**
 
-Good luck!
+* No service layer
+* Business logic inside controller
+
+**After**
+
+* Introduced `UserService`
+* Centralized business logic
+* Added transactional boundaries using `@Transactional`
+
+**Improvement**
+Separated business logic from web layer and improved maintainability.
+
+---
+
+## 4. Validation Implementation
+
+Added validation rules:
+
+* Name must not be empty
+* Email must be valid and not empty
+* Email must be unique
+* User must have at least one role
+
+**Improvement**
+Ensured data integrity and prevented invalid inputs.
+
+---
+
+## 5. DTO Layer Introduction
+
+**Before**
+
+* Entity exposed directly through API
+
+**After**
+
+* Introduced `UserDto`
+* Implemented mapping between DTO and entity
+
+**Improvement**
+Decoupled API contract from internal data model.
+
+---
+
+## 6. Controller Refactor
+
+**Before**
+
+* Business logic inside controller
+* Incorrect HTTP usage
+* Direct DAO usage
+* XML-based configuration
+
+**After**
+
+* Proper RESTful design
+* Delegation to service layer
+* DTO-based request/response
+* Removed legacy configuration
+
+**Improvement**
+Aligned controller with REST and Spring Boot best practices.
+
+---
+
+## 7. Critical Bug Fixes
+
+* Replaced `==` with `.equals()` for string comparison
+* Fixed duplicate save issue during update
+* Eliminated shared mutable state caused by singleton
+* Improved null safety and removed silent exception handling
+
+---
+
+## 8. Transaction Management
+
+**Before**
+
+* Transactions incorrectly placed in DAO layer
+
+**After**
+
+* Moved `@Transactional` to service layer
+
+**Improvement**
+Aligned transaction boundaries with business operations.
+
+---
+
+## 9. Database Integration
+
+**Before**
+
+* In-memory storage
+
+**After**
+
+* Integrated MySQL using Spring Data JPA
+* Configured Hibernate
+* Introduced proper entity mapping
+
+**Improvement**
+Enabled persistent and scalable data storage.
+
+---
+
+## 10. Testing Improvements
+
+**Before**
+
+* Broken and unreliable tests
+
+**After**
+
+* Unit tests using Mockito
+* Integration tests for repository layer
+
+**Improvement**
+Established a reliable testing strategy.
+
+---
+
+## 11. Configuration Management
+
+* Introduced environment-based configuration
+* Used Spring profiles:
+
+   * `application.properties` (local)
+   * `application-docker.properties` (Docker)
+
+**Improvement**
+Improved flexibility and deployment readiness.
+
+---
+
+## 12. Docker Integration
+
+* Added Dockerfile
+* Added docker-compose (app + MySQL)
+* Configured container networking
+
+**Improvement**
+Enabled consistent runtime environment.
+
+---
+
+## 13. General Code Cleanup
+
+* Removed unnecessary try-catch blocks
+* Improved naming and structure
+* Applied clean code principles
+* Used Lombok
+
+---
+
+## Final Result
+
+* Clean layered architecture (Controller → Service → Repository)
+* RESTful API
+* Validation and exception handling
+* Database-backed persistence
+* Proper testing strategy
+* Dockerized application
+
+---
+
+## How to Run
+
+### Run Locally
+
+1. Ensure MySQL is running
+2. Create database:
+
+```sql
+CREATE DATABASE testdb;
+```
+
+3. Configure credentials in `application.properties`
+4. Run the application
+
+---
+
+### Run with Docker
+
+```bash
+docker compose up --build
+```
+
+Application will be available at:
+
+```
+http://localhost:6677
+```
+
+---
+
+## API Endpoints
+
+| Method | Endpoint       | Description       |
+| ------ | -------------- | ----------------- |
+| POST   | /users         | Create user       |
+| PUT    | /users         | Update user       |
+| DELETE | /users/{email} | Delete user       |
+| GET    | /users         | Get all users     |
+| GET    | /users/{email} | Get user by email |
+
+---
+
+## Technologies
+
+* Java
+* Spring Boot
+* Spring Data JPA
+* MySQL
+* Gradle
+* Docker
+* JUnit & Mockito
+* Lombok
+
+---
+
+## Summary Statement
+
+The application was transformed from a tightly coupled and error-prone structure into a clean, maintainable, and production-ready system aligned with modern Spring Boot best practices.

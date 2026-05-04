@@ -1,19 +1,15 @@
 package com.sap.refactoring.web.controller;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import com.sap.refactoring.users.UserDto;
 import com.sap.refactoring.users.UserService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
+
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import com.sap.refactoring.users.User;
-import com.sap.refactoring.users.UserDao;
 
 @RestController
 @RequestMapping("/users")
@@ -23,16 +19,16 @@ public class UserController {
 
 	@PostMapping
 	public ResponseEntity<UserDto> createUser(@RequestBody UserDto dto) {
-		User user = mapToEntity(dto);
+		User user = userService.mapToEntity(dto);
 		User created = userService.createUser(user);
-		return ResponseEntity.ok(mapToDto(created));
+		return ResponseEntity.ok(userService.mapToDto(created));
 	}
 
 	@PutMapping
 	public ResponseEntity<UserDto> updateUser(@RequestBody UserDto dto) {
-		User user = mapToEntity(dto);
+		User user = userService.mapToEntity(dto);
 		User updated = userService.updateUser(user);
-		return ResponseEntity.ok(mapToDto(updated));
+		return ResponseEntity.ok(userService.mapToDto(updated));
 	}
 
 	@DeleteMapping("/{email}")
@@ -45,32 +41,16 @@ public class UserController {
 	public ResponseEntity<List<UserDto>> getUsers() {
 		List<UserDto> users = userService.getUsers()
 				.stream()
-				.map(this::mapToDto)
+				.map(userService::mapToDto)
 				.toList();
 
 		return ResponseEntity.ok(users);
 	}
 
 	@GetMapping("/{email}")
-	public ResponseEntity<UserDto> getUser(@PathVariable String email) {
+	public ResponseEntity<UserDto> getUserByEmail(@PathVariable String email) {
 		User user = userService.findUser(email);
-		return ResponseEntity.ok(mapToDto(user));
+		return ResponseEntity.ok(userService.mapToDto(user));
 	}
 
-
-	private User mapToEntity(UserDto dto) {
-		User user = new User();
-		user.setName(dto.getName());
-		user.setEmail(dto.getEmail());
-		user.setRoles(dto.getRoles());
-		return user;
-	}
-
-	private UserDto mapToDto(User user) {
-		UserDto dto = new UserDto();
-		dto.setName(user.getName());
-		dto.setEmail(user.getEmail());
-		dto.setRoles(user.getRoles());
-		return dto;
-	}
 }
