@@ -16,4 +16,4 @@ services:
     depends_on:
       - mysql
     environment:
-      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/testdb
