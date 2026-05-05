@@ -1,4 +1,4 @@
-# Full Refactoring Summary (End-to-End)
+# Full Refactoring Summary
 
 This project demonstrates the complete transformation of an application from an initial, tightly coupled state into a clean, maintainable, and production-ready system.
 
